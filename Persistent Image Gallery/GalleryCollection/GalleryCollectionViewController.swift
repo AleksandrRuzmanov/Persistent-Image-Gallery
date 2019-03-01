@@ -10,6 +10,16 @@ import UIKit
 
 class GalleryCollectionViewController: UICollectionViewController, UICollectionViewDropDelegate, UICollectionViewDragDelegate, UICollectionViewDelegateFlowLayout, UIDropInteractionDelegate {
     
+    // model
+    
+    var gallery = Gallery()
+    
+    // URL cache
+    
+    private var cache = URLCache.shared
+    
+    
+    
     // document handling
     
     var document: GalleryDocument?
@@ -41,12 +51,6 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     
     
     
-    // model
-    
-    var gallery = Gallery()
-    
-    
-    
     // collectionView data loading
     
     override func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -61,7 +65,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ImageCell", for: indexPath)
         if let imageGalleryCell = cell as? GalleryCollectionViewCell {
             if let item = gallery.getItem(at: indexPath.item) {
-                imageGalleryCell.setupImageViewFor(item, width: cellWidth)
+                imageGalleryCell.setupImageViewFor(item, width: cellWidth, using: cache)
             }
         }
         return cell
@@ -252,6 +256,8 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
         self.collectionView.dropDelegate = self
         self.collectionView.dragDelegate = self
         self.splitViewController?.preferredDisplayMode = .primaryOverlay
+        self.collectionView.dragInteractionEnabled = true
+        cache = URLCache(memoryCapacity: 10*1024*1024, diskCapacity: 100*1024*1024, diskPath: nil)
     }
 
 }

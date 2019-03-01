@@ -15,7 +15,9 @@ class GalleryCollectionViewCell: UICollectionViewCell {
     
     @IBOutlet weak var imageView: UIImageView!
     
-    private var cellWidth: CGFloat = 128.0
+    var cellWidth: CGFloat = 128.0
+    
+    var cache: URLCache?
     
     var imageURL: URL?
     
@@ -31,28 +33,45 @@ class GalleryCollectionViewCell: UICollectionViewCell {
         }
     }
     
-    func setupImageViewFor(_ item: GalleryItem, width: CGFloat) {
+    func setupImageViewFor(_ item: GalleryItem, width: CGFloat, using cache: URLCache) {
+        self.cache = cache
+        let session = URLSession(configuration: .default)
         activityIndicator.startAnimating()
         imageURL = nil
         aspectRatio = nil
         cellWidth = width
         imageURL = item.url.imageURL
         aspectRatio = CGFloat(item.aspectRatio)
-        DispatchQueue.global(qos: .userInitiated).async {
-            if self.imageURL != nil {
-                let urlContent = try? Data(contentsOf: self.imageURL!)
-                DispatchQueue.main.async {
-                    if let imageData = urlContent, item.url.imageURL == self.imageURL {
-                        let image = UIImage(data: imageData)
-                        if image != nil {
-                            self.imageView.image = image
-                            let aspectRatio = image!.size.height / image!.size.width
-                            self.aspectRatio = aspectRatio
-                        } else {
-                            self.backgroundColor = UIColor.red
+        if self.imageURL != nil {
+            let request = URLRequest(url: self.imageURL!)
+            if let cashedResponse = cache.cachedResponse(for: request), let image = UIImage(data: cashedResponse.data) {
+                // if image is in cache
+                self.imageView.image = image
+                let aspectRatio = image.size.height / image.size.width
+                self.aspectRatio = aspectRatio
+                self.activityIndicator.stopAnimating()
+            } else {
+                // if image isn't in cache
+                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                    let task = session.dataTask(with: request, completionHandler: { (urlData, urlResponse, urlError) in
+                        DispatchQueue.main.async {
+                            if urlError != nil {
+                                print("Data request failed with error \(urlError!)")
+                            }
+                            if let data = urlData, let image = UIImage(data: data) {
+                                if let response = urlResponse {
+                                    self?.cache?.storeCachedResponse(CachedURLResponse(response: response, data: data), for: request)
+                                }
+                                self?.imageView.image = image
+                                let aspectRatio = image.size.height / image.size.width
+                                self?.aspectRatio = aspectRatio
+                            } else {
+                                self?.backgroundColor = UIColor.red
+                            }
+                            self?.activityIndicator.stopAnimating()
                         }
-                        self.activityIndicator.stopAnimating()
-                    }
+                    })
+                    task.resume()
                 }
             }
         }
