@@ -81,8 +81,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         var size: CGSize? = flowLayout?.itemSize
         if let aspectRatio = gallery.getItem(at: indexPath.item)?.aspectRatio, size != nil {
-            let minBoundsSize = min(self.collectionView.bounds.width, self.collectionView.bounds.height)
-            size!.width = min(cellWidth * scale, minBoundsSize)
+            size!.width = max(min(cellWidth * scale, collectionView.bounds.width), collectionView.bounds.width/10)
             size!.height = size!.width * CGFloat(aspectRatio)
             return size!
         }
@@ -97,9 +96,9 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     
     private var cellWidth: CGFloat {
         if let cellWidth = self.collectionView.visibleCells.first?.frame.size.width {
-            return cellWidth
-        }
-        return 250.0
+                return cellWidth
+            }
+        return collectionView.bounds.width/3
     }
     
     private var scale: CGFloat = 1.0 {
