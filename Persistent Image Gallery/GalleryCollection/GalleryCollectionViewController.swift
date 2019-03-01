@@ -28,7 +28,9 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
         document?.gallery = gallery
         if document?.gallery != nil {
             document?.updateChangeCount(.done)
-            document?.thumbnailImage = self.collectionView.snapshot
+            if let galleryCell = collectionView.cellForItem(at: IndexPath(item: 0, section: 0)) as? GalleryCollectionViewCell, let image = galleryCell.imageView.image {
+                document?.thumbnailImage = image
+            }
         }
         dismiss(animated: true) {
             self.document?.close()
