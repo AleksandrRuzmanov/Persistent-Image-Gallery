@@ -96,7 +96,7 @@
                                 <action selector="close:" destination="6HD-fR-eC6" id="ZHd-mx-YVp"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" width="10" style="plain" id="hlW-TQ-ZJl">
+                        <barButtonItem key="rightBarButtonItem" width="10" id="hlW-TQ-ZJl">
                             <view key="customView" contentMode="scaleToFill" id="j3B-Wc-QCB">
                                 <rect key="frame" x="491" y="0.0" width="156" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -138,7 +138,7 @@
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="AoO-83-C5p">
                                 <rect key="frame" x="0.0" y="32" width="667" height="343"/>
                             </scrollView>
-                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="Edx-GY-aFM">
+                            <activityIndicatorView hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="Edx-GY-aFM">
                                 <rect key="frame" x="323.5" y="193.5" width="20" height="20"/>
                                 <color key="color" red="0.016804177310000001" green="0.19835099580000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </activityIndicatorView>

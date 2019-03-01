@@ -70,6 +70,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
         }
         return cell
     }
+
     
     
     // collectionView cells laying out
@@ -131,6 +132,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
         if segue.identifier == "ShowImageInScrollView", let galleryViewCell = sender as? GalleryCollectionViewCell {
             if let imageScrollViewController = segue.destination as? ImageScrollViewController {
                 imageScrollViewController.url = galleryViewCell.imageURL
+                imageScrollViewController.cache = cache
             }
         }
     }

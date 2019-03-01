@@ -42,14 +42,14 @@ class GalleryCollectionViewCell: UICollectionViewCell {
         cellWidth = width
         imageURL = item.url.imageURL
         aspectRatio = CGFloat(item.aspectRatio)
-        if self.imageURL != nil {
-            let request = URLRequest(url: self.imageURL!)
+        if imageURL != nil {
+            let request = URLRequest(url: imageURL!)
             if let cashedResponse = cache.cachedResponse(for: request), let image = UIImage(data: cashedResponse.data) {
                 // if image is in cache
-                self.imageView.image = image
+                imageView.image = image
                 let aspectRatio = image.size.height / image.size.width
                 self.aspectRatio = aspectRatio
-                self.activityIndicator.stopAnimating()
+                activityIndicator.stopAnimating()
             } else {
                 // if image isn't in cache
                 DispatchQueue.global(qos: .userInitiated).async { [weak self] in
