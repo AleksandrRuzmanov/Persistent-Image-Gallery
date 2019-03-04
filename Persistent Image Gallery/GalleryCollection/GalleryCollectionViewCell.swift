@@ -40,7 +40,7 @@ class GalleryCollectionViewCell: UICollectionViewCell {
         let session = URLSession(configuration: .default)
         activityIndicator.startAnimating()
         imageURL = nil
-        aspectRatio = nil
+        aspectRatio = CGFloat(item.aspectRatio)
         cellWidth = width
         if let url = item.url?.imageURL {
             imageURL = url

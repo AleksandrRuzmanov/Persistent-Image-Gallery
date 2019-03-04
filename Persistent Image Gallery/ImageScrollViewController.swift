@@ -32,7 +32,6 @@ class ImageScrollViewController: UIViewController, UIScrollViewDelegate {
         super.viewDidAppear(animated)
         if imageView.image == nil {
             loadImage()
-
         }
     }
     
@@ -41,7 +40,7 @@ class ImageScrollViewController: UIViewController, UIScrollViewDelegate {
     @IBOutlet private weak var scrollView: UIScrollView! {
         didSet {
             scrollView.delegate = self
-            scrollView.minimumZoomScale = 0.5
+            scrollView.minimumZoomScale = 0.25
             scrollView.maximumZoomScale = 2.0
             scrollView.addSubview(imageView)
         }

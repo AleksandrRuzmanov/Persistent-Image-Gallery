@@ -25,15 +25,20 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     var document: GalleryDocument?
     
     @IBAction private func close(_ sender: UIBarButtonItem) {
+        saveDocument()
+        dismiss(animated: true) {
+            self.document?.close()
+        }
+    }
+    
+    private func saveDocument() {
+        print("Save document")
         document?.gallery = gallery
         if document?.gallery != nil {
             document?.updateChangeCount(.done)
             if let galleryCell = collectionView.cellForItem(at: IndexPath(item: 0, section: 0)) as? GalleryCollectionViewCell, let image = galleryCell.imageView.image {
                 document?.thumbnailImage = image
             }
-        }
-        dismiss(animated: true) {
-            self.document?.close()
         }
     }
     
@@ -197,6 +202,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
                         collectionView.insertItems(at: [destinationIndexPath])
                     })
                     coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
+                    saveDocument()
                 }
             } else {
                 // if source isn't local
@@ -219,10 +225,12 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
                                 placeholderContext.commitInsertion(dataSourceUpdates: { incertionIndexPath in
                                     self.gallery.addItemWith(aspectRatio: aspectRatio, url: url, at: incertionIndexPath.item)
                                 })
+                                self.saveDocument()
                             } else if let imageData = image.jpegData(compressionQuality: 1.0) {
                                 placeholderContext.commitInsertion(dataSourceUpdates: { incertionIndexPath in
                                     self.gallery.addItemWith(aspectRatio: aspectRatio, imageData: imageData , at: incertionIndexPath.item)
                                 })
+                                self.saveDocument()
                             } else {
                                 placeholderContext.deletePlaceholder()
                             }
@@ -259,6 +267,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
                 collectionView.performBatchUpdates({
                     self.gallery.removeItem(at: indexPath.row)
                     self.collectionView.deleteItems(at: [indexPath])
+                    saveDocument()
                 })
             }
         }
