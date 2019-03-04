@@ -14,8 +14,13 @@ struct Gallery: Codable {
 
     private var galleryItems = [GalleryItem]()
     
-    mutating func addItemWith(aspectRatio: Double, url: URL, at index: Int) {
-        galleryItems.insert(GalleryItem(url: url, aspectRatio: aspectRatio), at: index)
+    mutating func addItemWith(aspectRatio: Double, url: URL? = nil, imageData: Data? = nil, at index: Int) {
+        assert(!(url == nil && imageData == nil), "Both url and imageData are nil!")
+        if url != nil {
+            galleryItems.insert(GalleryItem(url: url!, aspectRatio: aspectRatio), at: index)
+        } else if imageData != nil {
+            galleryItems.insert(GalleryItem(imageData: imageData!, aspectRatio: aspectRatio), at: index)
+        }
     }
     
     mutating func removeItem(at index: Int) {

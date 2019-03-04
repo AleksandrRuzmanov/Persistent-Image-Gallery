@@ -133,6 +133,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShowImageInScrollView", let galleryViewCell = sender as? GalleryCollectionViewCell {
             if let imageScrollViewController = segue.destination as? ImageScrollViewController {
+                imageScrollViewController.imageData = galleryViewCell.imageData
                 imageScrollViewController.url = galleryViewCell.imageURL
                 imageScrollViewController.cache = cache
             }
@@ -156,6 +157,10 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
                 let item = UIDragItem(itemProvider: NSItemProvider(object: url as NSURL))
                 item.localObject = imageGalleryCell
                 dragItems.append(item)
+            } else if let imageData = imageGalleryCell.imageData, let image = UIImage(data: imageData) {
+                let item = UIDragItem(itemProvider: NSItemProvider(object: image))
+                item.localObject = imageGalleryCell
+                dragItems.append(item)
             }
         }
         return dragItems
@@ -166,7 +171,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     // drop in collectionView
     
     func collectionView(_ collectionView: UICollectionView, canHandle session: UIDropSession) -> Bool {
-        return (session.canLoadObjects(ofClass: NSURL.self) && session.canLoadObjects(ofClass: UIImage.self)) || (session.localDragSession?.localContext as? UICollectionView == self.collectionView)
+        return session.canLoadObjects(ofClass: UIImage.self) || (session.localDragSession?.localContext as? UICollectionView == self.collectionView)
     }
     
     
@@ -195,21 +200,32 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
                 }
             } else {
                 // if source isn't local
-                var aspectRatio: Double?
+                var url: URL?
+                
                 let placeholderContext = coordinator.drop(item.dragItem, to: UICollectionViewDropPlaceholder(insertionIndexPath: destinationIndexPath, reuseIdentifier: "PlaceholderCell"))
-                item.dragItem.itemProvider.loadObject(ofClass: UIImage.self) { (provider, error) in
-                    if let image = provider as? UIImage {
-                        aspectRatio = Double(image.size.height / image.size.width)
+                
+                
+                item.dragItem.itemProvider.loadObject(ofClass: NSURL.self) { (provider, error) in
+                    if let itemURL = provider as? URL {
+                        url = itemURL
                     }
                 }
-                item.dragItem.itemProvider.loadObject(ofClass: NSURL.self) { (provider, error) in
+                
+                item.dragItem.itemProvider.loadObject(ofClass: UIImage.self) { (provider, error) in
                     DispatchQueue.main.async {
-                        if let url = provider as? URL, aspectRatio != nil {
-                            placeholderContext.commitInsertion(dataSourceUpdates: { incertionIndexPath in
-                                self.gallery.addItemWith(aspectRatio: aspectRatio!, url: url, at: incertionIndexPath.item)
-                            })
-                        } else {
-                            placeholderContext.deletePlaceholder()
+                        if let image = provider as? UIImage {
+                            let aspectRatio = Double(image.size.height / image.size.width)
+                            if url != nil {
+                                placeholderContext.commitInsertion(dataSourceUpdates: { incertionIndexPath in
+                                    self.gallery.addItemWith(aspectRatio: aspectRatio, url: url, at: incertionIndexPath.item)
+                                })
+                            } else if let imageData = image.jpegData(compressionQuality: 1.0) {
+                                placeholderContext.commitInsertion(dataSourceUpdates: { incertionIndexPath in
+                                    self.gallery.addItemWith(aspectRatio: aspectRatio, imageData: imageData , at: incertionIndexPath.item)
+                                })
+                            } else {
+                                placeholderContext.deletePlaceholder()
+                            }
                         }
                     }
                 }

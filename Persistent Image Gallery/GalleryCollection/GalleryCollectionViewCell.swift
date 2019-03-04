@@ -19,6 +19,8 @@ class GalleryCollectionViewCell: UICollectionViewCell {
     
     var cache: URLCache?
     
+    var imageData: Data?
+    
     var imageURL: URL?
     
     var aspectRatio: CGFloat? {
@@ -40,7 +42,12 @@ class GalleryCollectionViewCell: UICollectionViewCell {
         imageURL = nil
         aspectRatio = nil
         cellWidth = width
-        imageURL = item.url.imageURL
+        if let url = item.url?.imageURL {
+            imageURL = url
+        } else if let data = item.imageData {
+            imageData = data
+        }
+        
         aspectRatio = CGFloat(item.aspectRatio)
         if imageURL != nil {
             let request = URLRequest(url: imageURL!)
@@ -74,6 +81,11 @@ class GalleryCollectionViewCell: UICollectionViewCell {
                     task.resume()
                 }
             }
+        } else if imageData != nil, let image = UIImage(data: imageData!) {
+            imageView.image = image
+            let aspectRatio = image.size.height / image.size.width
+            self.aspectRatio = aspectRatio
+            self.activityIndicator.stopAnimating()
         }
     }
 }

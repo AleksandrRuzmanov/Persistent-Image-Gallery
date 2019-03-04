@@ -10,13 +10,20 @@ import Foundation
 
 struct GalleryItem: Codable {
     
-    var url: URL
+    var imageData: Data?
+    
+    var url: URL?
     
     var aspectRatio: Double
     
     
     init(url: URL, aspectRatio: Double) {
         self.url = url
+        self.aspectRatio = aspectRatio
+    }
+    
+    init(imageData: Data, aspectRatio: Double) {
+        self.imageData = imageData
         self.aspectRatio = aspectRatio
     }
 }

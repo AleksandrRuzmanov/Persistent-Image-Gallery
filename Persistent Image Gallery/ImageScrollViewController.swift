@@ -10,6 +10,14 @@ import UIKit
 
 class ImageScrollViewController: UIViewController, UIScrollViewDelegate {
     
+    var imageData: Data? {
+        didSet {
+            imageView.image = nil
+            if view.window != nil {
+                loadImage()
+            }
+        }
+    }
     
     var url: URL? {
         didSet {
@@ -88,6 +96,8 @@ class ImageScrollViewController: UIViewController, UIScrollViewDelegate {
                     task.resume()
                 }
             }
+        }  else if imageData != nil, let image = UIImage(data: imageData!) {
+            self.image = image
         }
     }
 }
