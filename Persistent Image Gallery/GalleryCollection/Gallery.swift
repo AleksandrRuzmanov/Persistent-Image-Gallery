@@ -10,9 +10,11 @@ import Foundation
 
 struct Gallery: Codable {
 
-    var name: String?
-
     private var galleryItems = [GalleryItem]()
+    
+    mutating func addItem(_ item: GalleryItem, at index: Int) {
+        galleryItems.insert(item, at: index)
+    }
     
     mutating func addItemWith(aspectRatio: Double, url: URL? = nil, imageData: Data? = nil, at index: Int) {
         assert(!(url == nil && imageData == nil), "Both url and imageData are nil!")

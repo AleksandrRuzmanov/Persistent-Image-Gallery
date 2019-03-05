@@ -10,16 +10,9 @@ import UIKit
 
 class ImageScrollViewController: UIViewController, UIScrollViewDelegate {
     
-    var imageData: Data? {
-        didSet {
-            imageView.image = nil
-            if view.window != nil {
-                loadImage()
-            }
-        }
-    }
+    var imageFetcher: ImageFetcher?
     
-    var url: URL? {
+    var galleryItem: GalleryItem? {
         didSet {
             imageView.image = nil
             if view.window != nil {
@@ -35,8 +28,6 @@ class ImageScrollViewController: UIViewController, UIScrollViewDelegate {
         }
     }
     
-    var cache: URLCache?
-    
     @IBOutlet private weak var scrollView: UIScrollView! {
         didSet {
             scrollView.delegate = self
@@ -46,7 +37,6 @@ class ImageScrollViewController: UIViewController, UIScrollViewDelegate {
         }
     }
     
-    
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
@@ -55,48 +45,21 @@ class ImageScrollViewController: UIViewController, UIScrollViewDelegate {
     
     private var imageView = UIImageView()
     
-    private var image: UIImage? {
-        get {
-            return imageView.image
-        } set {
-            activityIndicator?.stopAnimating()
-            imageView.image = newValue
-            imageView.sizeToFit()
-            scrollView?.contentSize = imageView.frame.size
-        }
-    }
-    
     private func loadImage() {
-        let session = URLSession(configuration: .default)
         activityIndicator.startAnimating()
-        if let imageURL = url {
-            let request = URLRequest(url: imageURL)
-            if let cashedResponse = cache?.cachedResponse(for: request), let image = UIImage(data: cashedResponse.data) {
-                // if image is in cache
-                self.image = image
-            } else {
-                // if image isn't in cache
-                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                    let task = session.dataTask(with: request, completionHandler: { (urlData, urlResponse, urlError) in
-                        DispatchQueue.main.async {
-                            if urlError != nil {
-                                print("Data request failed with error \(urlError!)")
-                            }
-                            if let data = urlData, let image = UIImage(data: data) {
-                                if let response = urlResponse {
-                                    self?.cache?.storeCachedResponse(CachedURLResponse(response: response, data: data), for: request)
-                                }
-                                self?.image = image
-                            } else {
-                                self?.scrollView.backgroundColor = UIColor.red
-                            }
-                        }
-                    })
-                    task.resume()
+        if let item = galleryItem {
+            imageFetcher?.fetchImageFor(item) { [weak self] (image) in
+                if image != nil {
+                    self?.imageView.image = image
+                    self?.imageView.sizeToFit()
+                    if let size = self?.imageView.frame.size {
+                        self?.scrollView?.contentSize = size
+                    }
+                } else {
+                    self?.imageView.backgroundColor = UIColor.red
                 }
+                self?.activityIndicator.stopAnimating()
             }
-        }  else if imageData != nil, let image = UIImage(data: imageData!) {
-            self.image = image
         }
     }
 }

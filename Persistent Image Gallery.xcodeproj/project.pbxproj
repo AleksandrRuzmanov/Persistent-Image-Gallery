@@ -13,6 +13,7 @@
 		1F1A3C9A222826C60035E7D7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1F1A3C98222826C60035E7D7 /* Main.storyboard */; };
 		1F1A3C9C222826C90035E7D7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1F1A3C9B222826C90035E7D7 /* Assets.xcassets */; };
 		1F1A3C9F222826C90035E7D7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1F1A3C9D222826C90035E7D7 /* LaunchScreen.storyboard */; };
+		1F822AD1222E710D00CB75E0 /* ImageFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F822AD0222E710D00CB75E0 /* ImageFetcher.swift */; };
 		1F8263B422284D1900590B8F /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8263AE22284D1900590B8F /* Utilities.swift */; };
 		1F8263B522284D1900590B8F /* GalleryCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8263AF22284D1900590B8F /* GalleryCollectionViewController.swift */; };
 		1F8263B622284D1900590B8F /* GalleryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8263B022284D1900590B8F /* GalleryItem.swift */; };
@@ -30,6 +31,7 @@
 		1F1A3C9B222826C90035E7D7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1F1A3C9E222826C90035E7D7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		1F1A3CA0222826C90035E7D7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1F822AD0222E710D00CB75E0 /* ImageFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ImageFetcher.swift; path = "Persistent Image Gallery/ImageFetcher.swift"; sourceTree = SOURCE_ROOT; };
 		1F8263AE22284D1900590B8F /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		1F8263AF22284D1900590B8F /* GalleryCollectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GalleryCollectionViewController.swift; sourceTree = "<group>"; };
 		1F8263B022284D1900590B8F /* GalleryItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GalleryItem.swift; sourceTree = "<group>"; };
@@ -96,6 +98,7 @@
 				1F8263AF22284D1900590B8F /* GalleryCollectionViewController.swift */,
 				1F8263B022284D1900590B8F /* GalleryItem.swift */,
 				1F8263B122284D1900590B8F /* GalleryCollectionViewCell.swift */,
+				1F822AD0222E710D00CB75E0 /* ImageFetcher.swift */,
 				1F8263B222284D1900590B8F /* Gallery.swift */,
 			);
 			path = GalleryCollection;
@@ -174,6 +177,7 @@
 			files = (
 				1F8263B822284D1900590B8F /* Gallery.swift in Sources */,
 				1F8263B522284D1900590B8F /* GalleryCollectionViewController.swift in Sources */,
+				1F822AD1222E710D00CB75E0 /* ImageFetcher.swift in Sources */,
 				1F8263B922284D1900590B8F /* ImageScrollViewController.swift in Sources */,
 				1F1A3C97222826C60035E7D7 /* GalleryDocument.swift in Sources */,
 				1F1A3C93222826C60035E7D7 /* DocumentBrowserViewController.swift in Sources */,

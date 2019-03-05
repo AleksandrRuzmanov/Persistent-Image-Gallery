@@ -16,7 +16,15 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     
     // URL cache
     
-    private var cache = URLCache.shared
+    private var cache = URLCache.shared {
+        didSet {
+            imageLoader.cache = cache
+        }
+    }
+    
+    // image loader
+    
+    private var imageLoader = ImageFetcher()
     
     
     
@@ -72,7 +80,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ImageCell", for: indexPath)
         if let imageGalleryCell = cell as? GalleryCollectionViewCell {
             if let item = gallery.getItem(at: indexPath.item) {
-                imageGalleryCell.setupImageViewFor(item, width: cellWidth, using: cache)
+                imageGalleryCell.setImageFor(item, using: imageLoader)
             }
         }
         return cell
@@ -89,8 +97,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         var size: CGSize? = flowLayout?.itemSize
         if let aspectRatio = gallery.getItem(at: indexPath.item)?.aspectRatio, size != nil {
-            size!.width = max(min(cellWidth * scale, collectionView.bounds.width), collectionView.bounds.width/10)
-            size!.height = size!.width * CGFloat(aspectRatio)
+            size = CGSize(width: cellWidth, height: cellWidth * CGFloat(aspectRatio))
             return size!
         }
         return  CGSize.zero
@@ -102,24 +109,18 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     
     // collectionView zooming
     
-    private var cellWidth: CGFloat {
-        if let cellWidth = self.collectionView.visibleCells.first?.frame.size.width {
-                return cellWidth
-            }
-        return collectionView.bounds.width/3
-    }
-    
-    private var scale: CGFloat = 1.0 {
+    private var cellWidth: CGFloat = 128.0 {
         didSet {
-            flowLayout?.invalidateLayout()
+            cellWidth = max(min(cellWidth, collectionView.bounds.width), collectionView.bounds.width/10)
         }
     }
     
     @objc private func zoomByPinch(sender: UIPinchGestureRecognizer) {
         switch sender.state {
         case .changed, .ended:
-            scale = sender.scale
+            cellWidth *= sender.scale
             sender.scale = 1.0
+            flowLayout?.invalidateLayout()
         default:
             break
         }
@@ -136,11 +137,10 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "ShowImageInScrollView", let galleryViewCell = sender as? GalleryCollectionViewCell {
+        if segue.identifier == "ShowImageInScrollView", let galleryViewCell = sender as? GalleryCollectionViewCell, let indexPath = self.collectionView.indexPath(for: galleryViewCell), let galleryItem = gallery.getItem(at: indexPath.item) {
             if let imageScrollViewController = segue.destination as? ImageScrollViewController {
-                imageScrollViewController.imageData = galleryViewCell.imageData
-                imageScrollViewController.url = galleryViewCell.imageURL
-                imageScrollViewController.cache = cache
+                imageScrollViewController.imageFetcher = imageLoader
+                imageScrollViewController.galleryItem = galleryItem
             }
         }
     }
@@ -157,12 +157,12 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     
     private func dragItems(at indexPath: IndexPath) -> [UIDragItem] {
         var dragItems: [UIDragItem] = []
-        if let imageGalleryCell = collectionView.cellForItem(at: indexPath) as? GalleryCollectionViewCell {
-            if let url = imageGalleryCell.imageURL {
+        if let imageGalleryCell = collectionView.cellForItem(at: indexPath) as? GalleryCollectionViewCell, let galleryItem = gallery.getItem(at: indexPath.item) {
+            if let url = galleryItem.url {
                 let item = UIDragItem(itemProvider: NSItemProvider(object: url as NSURL))
                 item.localObject = imageGalleryCell
                 dragItems.append(item)
-            } else if let imageData = imageGalleryCell.imageData, let image = UIImage(data: imageData) {
+            } else if let imageData = galleryItem.imageData, let image = UIImage(data: imageData) {
                 let item = UIDragItem(itemProvider: NSItemProvider(object: image))
                 item.localObject = imageGalleryCell
                 dragItems.append(item)
@@ -191,46 +191,48 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
         
         let destinationIndexPath = coordinator.destinationIndexPath ?? IndexPath(item: 0, section: 0)
         for item in coordinator.items {
-            if let sourceIndexPath = item.sourceIndexPath, let imageViewCell = item.dragItem.localObject as? GalleryCollectionViewCell {
+            if let sourceIndexPath = item.sourceIndexPath {
                 // if source is local
-                if let image = imageViewCell.imageView.image, let url = imageViewCell.imageURL {
-                    let aspectRaio = Double(image.size.height / image.size.width)
+                if let galleryItem = gallery.getItem(at: sourceIndexPath.item) {
                     collectionView.performBatchUpdates({
                         self.gallery.removeItem(at: sourceIndexPath.item)
-                        self.gallery.addItemWith(aspectRatio: aspectRaio, url: url, at: destinationIndexPath.item)
+                        self.gallery.addItem(galleryItem, at: destinationIndexPath.item)
                         collectionView.deleteItems(at: [sourceIndexPath])
                         collectionView.insertItems(at: [destinationIndexPath])
                     })
-                    coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
                     saveDocument()
+                    coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
                 }
             } else {
                 // if source isn't local
+                var isIncertionCompleted: Bool? {
+                    didSet {
+                        if isIncertionCompleted == true {
+                            saveDocument()
+                        }
+                    }
+                }
                 var url: URL?
-                
                 let placeholderContext = coordinator.drop(item.dragItem, to: UICollectionViewDropPlaceholder(insertionIndexPath: destinationIndexPath, reuseIdentifier: "PlaceholderCell"))
-                
-                
                 item.dragItem.itemProvider.loadObject(ofClass: NSURL.self) { (provider, error) in
                     if let itemURL = provider as? URL {
                         url = itemURL
                     }
                 }
-                
                 item.dragItem.itemProvider.loadObject(ofClass: UIImage.self) { (provider, error) in
                     DispatchQueue.main.async {
                         if let image = provider as? UIImage {
                             let aspectRatio = Double(image.size.height / image.size.width)
                             if url != nil {
-                                placeholderContext.commitInsertion(dataSourceUpdates: { incertionIndexPath in
+                                // if it has URL
+                                isIncertionCompleted = placeholderContext.commitInsertion(dataSourceUpdates: { incertionIndexPath in
                                     self.gallery.addItemWith(aspectRatio: aspectRatio, url: url, at: incertionIndexPath.item)
                                 })
-                                self.saveDocument()
                             } else if let imageData = image.jpegData(compressionQuality: 1.0) {
-                                placeholderContext.commitInsertion(dataSourceUpdates: { incertionIndexPath in
+                                // if it has only image (without URL)
+                                isIncertionCompleted = placeholderContext.commitInsertion(dataSourceUpdates: { incertionIndexPath in
                                     self.gallery.addItemWith(aspectRatio: aspectRatio, imageData: imageData , at: incertionIndexPath.item)
                                 })
-                                self.saveDocument()
                             } else {
                                 placeholderContext.deletePlaceholder()
                             }
@@ -243,7 +245,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     
     
     
-    // image deletion from collectionView by drag and drop
+    // image deletion from collectionView by dragging cell to trashCan
     
     @IBOutlet private weak var trashCan: UIBarButtonItem! {
         didSet {
